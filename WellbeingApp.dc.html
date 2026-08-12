@@ -131,6 +131,7 @@
             <div style="{{ storageDotStyle }}"></div>
             <div style="font-size:11.5px;line-height:1.4;color:var(--color-neutral-700)">{{ storageLine }}</div>
           </div>
+          <div style="font-size:10.5px;line-height:1.35;color:var(--color-neutral-600);font-variant-numeric:tabular-nums">{{ diagLine }}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px;background:var(--color-surface);border-radius:var(--radius-lg);padding:18px">
           <div style="font-family:var(--font-heading);font-size:18px">Neues Profil</div>
@@ -449,7 +450,7 @@ class Component extends DCLogic {
     exportFor: null, exportPass: '', notifyBanner: null,
     lastBackup: null, backupOpen: false, backupPass: '', backupMode: 'out', importText: '',
     extraTemplates: [], storagePersisted: null, backupReason: '',
-    keyProblem: false, storageBroken: false
+    keyProblem: false, storageBroken: false, keyPresent: null
   };
 
   // ---------- constants ----------
@@ -716,8 +717,24 @@ class Component extends DCLogic {
     return false;
   }
 
+  // Vor allem anderen nachsehen, ob der Schlüssel vom letzten Start noch da
+  // ist. Danach ginge es nicht mehr: readStore legt bei Bedarf einen neuen an.
+  // „fehlt“ bei jedem Start heißt, dass der Speicher von außen geleert wird —
+  // die App kann das weder verursachen noch verhindern.
+  async peekKey() {
+    try {
+      const db = await this.keyDb();
+      return await new Promise((res) => {
+        const g = db.transaction('keys', 'readonly').objectStore('keys').get('main');
+        g.onsuccess = () => res(!!g.result);
+        g.onerror = () => res(false);
+      });
+    } catch (e) { return null; }
+  }
+
   async componentDidMount() {
     this.checkStorage();
+    this.setState({ keyPresent: await this.peekKey() });
     let saved = null, broken = false;
     try {
       const raw = await this.readStore();
@@ -1314,6 +1331,11 @@ class Component extends DCLogic {
       storageDotStyle: { width: 8, height: 8, flex: 'none', borderRadius: 999,
         background: (s.storagePersisted === true && !s.keyProblem && !s.storageBroken)
           ? 'var(--color-accent-2-500)' : 'var(--color-accent-500)' },
+      // Beantwortet zwei Fragen auf einen Blick: Läuft die neue Fassung? Und
+      // hat der Schlüssel den letzten Neustart überlebt?
+      diagLine: 'Fassung ' + ((typeof window !== 'undefined' && window.__WBM_BUILD) || 'unbekannt') +
+        ' · Schlüssel beim Start: ' +
+        (s.keyPresent === true ? 'vorhanden' : (s.keyPresent === false ? 'fehlte' : 'nicht prüfbar')),
       exportTemplate: this.exportTemplate,
       readTemplateFile: this.readTemplateFile,
       openBackup: () => this.openBackupOut(''),
