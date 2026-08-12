@@ -84,7 +84,7 @@ ohne Konto auskommt.
 
 ## Lizenzen
 
-Keine Lizenz
+Der Code steht unter der MIT-Lizenz, siehe [LICENSE](LICENSE).
 
 Mitgeliefert:
 

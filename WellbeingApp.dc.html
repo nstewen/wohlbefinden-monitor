@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-d0ac29e4-0fab-4e47-9d87-35e8121265c7/styles.css">
+<script src="_ds/organic-d0ac29e4-0fab-4e47-9d87-35e8121265c7/_ds_bundle.js"></script>
+</helmet>
+<div style="height:100%;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);overflow:hidden;position:relative">
+
+  <div style="{{ insetTopStyle }}"></div>
+
+  <sc-if value="{{ showHeader }}">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--color-neutral-100);border-bottom:1px solid var(--color-divider);flex:none">
+      <button onClick="{{ goBack }}" style="width:36px;height:36px;border:none;border-radius:999px;background:var(--color-accent-200);color:var(--color-accent-800);font-size:18px;line-height:1;cursor:pointer;flex:none">←</button>
+      <div style="font-family:var(--font-heading);font-size:19px;line-height:1.15">{{ headerTitle }}</div>
+    </div>
+  </sc-if>
+
+  <div style="flex:1;overflow:auto;overscroll-behavior:contain">
+
+    <sc-if value="{{ isOnboarding }}">
+      <div style="padding:34px 22px 28px;display:flex;flex-direction:column;gap:18px">
+        <div style="width:56px;height:56px;border-radius:999px;background:var(--color-accent-200)"></div>
+        <div style="font-family:var(--font-heading);font-size:32px;line-height:1.05">Willkommen</div>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:var(--color-neutral-700);text-wrap:pretty">Lege zuerst ein Profil an. Du brauchst ein Profil, um den Fragebogen auszufüllen.</p>
+        <div style="display:flex;flex-direction:column;gap:14px;background:var(--color-surface);border-radius:var(--radius-lg);padding:18px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--color-neutral-700)">Name</label>
+            <input value="{{ newName }}" onChange="{{ setNewName }}" placeholder="z.B. Anna" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--color-neutral-700)">Vorlage</label>
+            <select value="{{ newTemplate }}" onChange="{{ setNewTemplate }}" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+              <sc-for list="{{ templateOpts }}" as="t" hint-placeholder-count="2">
+                <option value="{{ t.id }}">{{ t.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--color-neutral-700)">Oder eine Vorlagendatei (.wbt)</label>
+            <input type="file" accept=".wbt,.json,.txt" onChange="{{ readTemplateFile }}" style="width:100%;box-sizing:border-box;font-family:var(--font-body);font-size:12px;color:var(--color-neutral-700)">
+          </div>
+          <sc-if value="{{ profileError }}">
+            <div style="font-size:13px;color:var(--color-accent-700)">{{ profileError }}</div>
+          </sc-if>
+          <button onClick="{{ createProfile }}" style="padding:14px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer">Profil erstellen</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:22px 18px 28px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">Profil</div>
+          <div style="font-family:var(--font-heading);font-size:28px;line-height:1.1">{{ currentProfileName }}</div>
+          <div style="font-size:13px;color:var(--color-neutral-700)">{{ lastFilledLine }}</div>
+        </div>
+        <sc-if value="{{ backupWarn }}">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:15px 16px;border-radius:var(--radius-md);background:var(--color-accent-100);border:1px solid var(--color-accent-300)">
+            <div style="font-size:14px;font-weight:600;color:var(--color-accent-800)">Sicherung fällig</div>
+            <div style="font-size:12.5px;line-height:1.4;color:var(--color-accent-800);text-wrap:pretty">{{ backupWarn }}</div>
+            <button onClick="{{ backupNow }}" style="align-self:flex-start;padding:9px 16px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:12.5px;font-weight:600;cursor:pointer">Jetzt sichern</button>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="4">
+            <button onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:14px;text-align:left;padding:18px;border:1px solid var(--color-neutral-300);border-radius:var(--radius-lg);background:var(--color-neutral-100);cursor:pointer;font-family:var(--font-body);color:var(--color-text)">
+              <div style="{{ m.dotStyle }}"></div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:16px;font-weight:600">{{ m.title }}</div>
+                <div style="font-size:12.5px;color:var(--color-neutral-600);line-height:1.35">{{ m.sub }}</div>
+              </div>
+              <div style="color:var(--color-neutral-500);font-size:17px">›</div>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--radius-md);background:var(--color-accent-2-100)">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600">Tägliche Erinnerung</div>
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ reminderSub }}</div>
+            </div>
+            <button onClick="{{ toggleReminder }}" style="{{ reminderToggleStyle }}"><div style="{{ reminderKnobStyle }}"></div></button>
+          </div>
+          <sc-if value="{{ reminder }}">
+            <div style="display:flex;align-items:center;gap:10px">
+              <label style="font-size:12px;color:var(--color-neutral-700)">Uhrzeit</label>
+              <input type="time" value="{{ reminderTime }}" onChange="{{ setReminderTime }}" style="padding:7px 12px;border-radius:999px;border:1px solid var(--color-accent-2-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:13px;color:var(--color-text)">
+            </div>
+          </sc-if>
+        </div>
+        <button onClick="{{ resetApp }}" style="align-self:flex-start;padding:8px 14px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-neutral-700);font-family:var(--font-body);font-size:12px;cursor:pointer">Demo zurücksetzen</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfiles }}">
+      <div style="padding:18px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ profileRows }}" as="p" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-md);background:var(--color-neutral-100);border:1px solid var(--color-neutral-300)">
+              <button onClick="{{ p.onSelect }}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:none;background:transparent;text-align:left;cursor:pointer;font-family:var(--font-body);color:var(--color-text);padding:0">
+                <div style="{{ p.dotStyle }}"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:15px;font-weight:600">{{ p.name }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-600)">{{ p.meta }}</div>
+                </div>
+              </button>
+              <button onClick="{{ p.onExport }}" style="padding:7px 11px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-neutral-700);font-family:var(--font-body);font-size:11.5px;cursor:pointer">CSV</button>
+              <button onClick="{{ p.onDelete }}" style="padding:7px 11px;border:1px solid var(--color-accent-300);border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-700);font-family:var(--font-body);font-size:11.5px;cursor:pointer">Löschen</button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="{{ backupCardStyle }}">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600">Sicherung</div>
+              <div style="font-size:12px;color:var(--color-neutral-700);line-height:1.35">{{ backupLine }}</div>
+            </div>
+            <button onClick="{{ openBackup }}" style="padding:9px 15px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:12.5px;font-weight:600;cursor:pointer;flex:none">Öffnen</button>
+          </div>
+          <sc-if value="{{ backupDue }}">
+            <div style="font-size:11.5px;line-height:1.4;color:var(--color-accent-800)">Länger als eine Woche her. Werden die Browserdaten gelöscht, sind die Antworten weg.</div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="{{ storageDotStyle }}"></div>
+            <div style="font-size:11.5px;line-height:1.4;color:var(--color-neutral-700)">{{ storageLine }}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;background:var(--color-surface);border-radius:var(--radius-lg);padding:18px">
+          <div style="font-family:var(--font-heading);font-size:18px">Neues Profil</div>
+          <input value="{{ newName }}" onChange="{{ setNewName }}" placeholder="Name" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+          <select value="{{ newTemplate }}" onChange="{{ setNewTemplate }}" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+            <sc-for list="{{ templateOpts }}" as="t" hint-placeholder-count="2">
+              <option value="{{ t.id }}">{{ t.label }}</option>
+            </sc-for>
+          </select>
+          <input type="file" accept=".wbt,.json,.txt" onChange="{{ readTemplateFile }}" style="width:100%;box-sizing:border-box;font-family:var(--font-body);font-size:12px;color:var(--color-neutral-700)">
+          <sc-if value="{{ profileError }}">
+            <div style="font-size:13px;color:var(--color-accent-700)">{{ profileError }}</div>
+          </sc-if>
+          <button onClick="{{ createProfile }}" style="padding:13px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer">Hinzufügen</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isEditor }}">
+      <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button onClick="{{ newQuestion }}" style="flex:1;padding:13px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:14.5px;font-weight:600;cursor:pointer">+ Neue Frage</button>
+          <button onClick="{{ exportTemplate }}" style="padding:13px 16px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-neutral-700);font-family:var(--font-body);font-size:12.5px;cursor:pointer;flex:none">Als Vorlage sichern</button>
+        </div>
+        <div style="font-size:11.5px;line-height:1.4;color:var(--color-neutral-600);text-wrap:pretty">Die Vorlagendatei (.wbt) enthält nur die Fragen, keine Antworten. Beim Anlegen eines Profils lässt sie sich wieder einlesen.</div>
+        <button onClick="{{ toggleLegacy }}" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;cursor:pointer;font-family:var(--font-body);color:var(--color-text)">
+          <div style="{{ legacyBoxStyle }}">{{ legacyCheck }}</div>
+          <div style="font-size:13.5px">Veraltete Fragen anzeigen</div>
+        </button>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <sc-for list="{{ questionRows }}" as="q" hint-placeholder-count="5">
+            <div style="{{ q.cardStyle }}">
+              <div style="display:flex;align-items:flex-start;gap:10px">
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                  <div style="font-size:15px;font-weight:600;line-height:1.2">{{ q.name }}</div>
+                  <div style="font-size:12.5px;color:var(--color-neutral-700);line-height:1.35">{{ q.text }}</div>
+                </div>
+                <div style="{{ q.kindTagStyle }}">{{ q.kindTag }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <div style="font-size:11.5px;color:var(--color-neutral-600)">{{ q.meta }}</div>
+                <div style="flex:1"></div>
+                <button onClick="{{ q.onEdit }}" style="padding:6px 12px;border:1px solid var(--color-neutral-300);border-radius:999px;background:var(--color-neutral-100);color:var(--color-text);font-family:var(--font-body);font-size:11.5px;cursor:pointer">Bearbeiten</button>
+                <sc-if value="{{ q.canDelete }}">
+                  <button onClick="{{ q.onDelete }}" style="padding:6px 12px;border:1px solid var(--color-accent-300);border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-700);font-family:var(--font-body);font-size:11.5px;cursor:pointer">Löschen</button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isQForm }}">
+      <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--color-neutral-700)">Name</label>
+          <input value="{{ fName }}" onChange="{{ setFName }}" placeholder="z.B. Sport" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--color-neutral-700)">Text</label>
+          <textarea value="{{ fText }}" onChange="{{ setFText }}" rows="2" placeholder="Hast du heute Sport gemacht?" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:var(--radius-md);border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text);resize:none"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--color-neutral-700)">Typ</label>
+          <div style="display:flex;gap:6px;padding:4px;background:var(--color-neutral-200);border-radius:999px">
+            <sc-for list="{{ kindOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--color-neutral-700)">Art</label>
+          <div style="display:flex;gap:6px;padding:4px;background:var(--color-neutral-200);border-radius:999px">
+            <sc-for list="{{ typeOpts }}" as="o" hint-placeholder-count="2">
+              <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ fIsBool }}">
+          <button onClick="{{ toggleIsCategory }}" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;cursor:pointer;font-family:var(--font-body);color:var(--color-text);text-align:left">
+            <div style="{{ catBoxStyle }}">{{ catCheck }}</div>
+            <div style="font-size:13.5px;line-height:1.35">Ist eine Kategorie<br><span style="font-size:11.5px;color:var(--color-neutral-600)">Andere Fragen können daran hängen</span></div>
+          </button>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--color-neutral-700)">Gehört zu Kategorie</label>
+          <select value="{{ fCategory }}" onChange="{{ setFCategory }}" style="width:100%;box-sizing:border-box;padding:12px 16px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:15px;color:var(--color-text)">
+            <sc-for list="{{ categoryOpts }}" as="c" hint-placeholder-count="3">
+              <option value="{{ c.value }}">{{ c.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <sc-if value="{{ formError }}">
+          <div style="font-size:13px;color:var(--color-accent-700)">{{ formError }}</div>
+        </sc-if>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ cancelForm }}" style="flex:1;padding:13px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-text);font-family:var(--font-body);font-size:15px;cursor:pointer">Abbrechen</button>
+          <button onClick="{{ saveQuestion }}" style="flex:1;padding:13px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer">Speichern</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isQuizStart }}">
+      <div onClick="{{ startQuiz }}" style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:34px 26px;cursor:pointer;text-align:center">
+        <div style="width:76px;height:76px;border-radius:999px;background:var(--color-accent-200)"></div>
+        <div style="font-family:var(--font-heading);font-size:30px;line-height:1.1">Starte Fragebogen</div>
+        <div style="font-size:13.5px;color:var(--color-neutral-700)">{{ lastFilledLine }}</div>
+        <div style="font-size:12px;color:var(--color-neutral-500);margin-top:8px">Tippe irgendwo, um zu beginnen</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isQuizResume }}">
+      <div style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:34px 26px;text-align:center">
+        <div style="font-family:var(--font-heading);font-size:24px;line-height:1.2">{{ resumeLine }}</div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px">
+          <button onClick="{{ resumeDraft }}" style="padding:14px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer">Weitermachen</button>
+          <button onClick="{{ discardDraft }}" style="padding:14px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-text);font-family:var(--font-body);font-size:15px;cursor:pointer">Verwerfen</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isQuizQuestion }}">
+      <div style="min-height:100%;display:flex;flex-direction:column;padding:22px 20px 20px;box-sizing:border-box">
+        <div style="height:4px;border-radius:999px;background:var(--color-neutral-200);overflow:hidden;flex:none">
+          <div style="{{ progressStyle }}"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:26px 0">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="font-family:var(--font-heading);font-size:25px;line-height:1.15">{{ qName }}</div>
+            <sc-if value="{{ qCategory }}">
+              <div style="align-self:flex-start;padding:4px 11px;border-radius:999px;background:var(--color-accent-2-200);color:var(--color-accent-2-800);font-size:11.5px;font-weight:600">{{ qCategory }}</div>
+            </sc-if>
+          </div>
+          <div style="font-size:17px;line-height:1.45;color:var(--color-neutral-800);text-wrap:pretty">{{ qText }}</div>
+          <sc-if value="{{ qIsBool }}">
+            <div style="display:flex;gap:12px">
+              <sc-for list="{{ boolOpts }}" as="b" hint-placeholder-count="2">
+                <button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ qIsRank }}">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="{{ rankValueStyle }}">{{ rankDisplay }}</div>
+              <input type="range" min="1" max="5" step="0.1" value="{{ rankValue }}" onChange="{{ setRank }}" style="width:100%;accent-color:var(--color-accent);height:28px">
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--color-neutral-600)">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+              </div>
+              <sc-if value="{{ rankUnset }}">
+                <div style="font-size:12px;color:var(--color-neutral-600)">Noch nicht beantwortet — bewege den Regler.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:10px;flex:none">
+          <button onClick="{{ prevQuestion }}" style="{{ prevStyle }}">← Vorherige Frage</button>
+          <button onClick="{{ nextQuestion }}" style="flex:1;padding:14px 10px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:13.5px;font-weight:600;cursor:pointer">Nächste Frage →</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isQuizDone }}">
+      <div style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:34px 26px;text-align:center">
+        <div style="{{ doneCircleStyle }}"></div>
+        <div style="font-family:var(--font-heading);font-size:28px;line-height:1.1">Fragebogen ausgefüllt</div>
+        <div style="font-size:13.5px;color:var(--color-neutral-700)">{{ doneSummary }}</div>
+        <button onClick="{{ finishQuiz }}" style="padding:14px 34px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer">Abschließen</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStats }}">
+      <div style="padding:16px 16px 26px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:11.5px;font-weight:600;color:var(--color-neutral-700)">Glücklichkeitsfrage</label>
+          <select value="{{ statTarget }}" onChange="{{ setStatTarget }}" style="width:100%;box-sizing:border-box;padding:11px 14px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:14px;color:var(--color-text)">
+            <sc-for list="{{ targetOpts }}" as="o" hint-placeholder-count="3">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+          <div style="font-size:12.5px;line-height:1.4;color:var(--color-neutral-700);padding:0 6px;text-wrap:pretty">{{ statTargetText }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:11.5px;font-weight:600;color:var(--color-neutral-700)">Zeitraum</label>
+          <select value="{{ statLag }}" onChange="{{ setStatLag }}" style="width:100%;box-sizing:border-box;padding:11px 14px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-neutral-100);font-family:var(--font-body);font-size:14px;color:var(--color-text)">
+            <sc-for list="{{ lagOpts }}" as="o" hint-placeholder-count="6">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+          <div style="font-size:12px;line-height:1.4;color:var(--color-neutral-600);padding:0 6px">{{ lagExplain }}</div>
+        </div>
+        <button onClick="{{ toggleStatLegacy }}" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:2px 0;cursor:pointer;font-family:var(--font-body);color:var(--color-text)">
+          <div style="{{ statLegacyBoxStyle }}">{{ statLegacyCheck }}</div>
+          <div style="font-size:13px">Zeige auch veraltete Fragen</div>
+        </button>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-neutral-600)">
+          <div style="width:64px;height:8px;border-radius:999px;background:linear-gradient(90deg,#b2182b,#f7f7f7,#2166ac)"></div>
+          <span>−1 bis +1 · Pearson · {{ statBasis }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;background:var(--color-neutral-100);border:1px solid var(--color-neutral-300);border-radius:var(--radius-md);padding:12px 10px">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="8">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="{{ b.labelStyle }}">{{ b.name }}</div>
+                <button onClick="{{ b.onToggle }}" style="width:17px;height:17px;flex:none;border:none;border-radius:999px;background:var(--color-neutral-200);color:var(--color-neutral-700);font-size:10.5px;font-family:var(--font-body);cursor:pointer;padding:0;line-height:17px">?</button>
+                <div style="position:relative;flex:1;height:17px;background:var(--color-neutral-200);border-radius:3px;overflow:hidden">
+                  <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--color-neutral-400)"></div>
+                  <div style="{{ b.barStyle }}"></div>
+                </div>
+                <div style="{{ b.valueStyle }}">{{ b.value }}</div>
+              </div>
+              <sc-if value="{{ b.open }}">
+                <div style="font-size:11.5px;line-height:1.4;color:var(--color-neutral-700);background:var(--color-neutral-200);border-radius:8px;padding:7px 9px">{{ b.text }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ statsEmpty }}">
+          <div style="font-size:13px;line-height:1.45;color:var(--color-neutral-700);text-align:center;padding:18px 14px;text-wrap:pretty">{{ statsEmptyText }}</div>
+        </sc-if>
+        <div style="font-size:11px;color:var(--color-neutral-600);line-height:1.4">Ausgegraut = weniger als 5 gemeinsame Tage.</div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div style="{{ insetBottomStyle }}"></div>
+
+  <sc-if value="{{ confirmOpen }}">
+    <div style="position:absolute;inset:0;background:rgba(32,30,29,.45);display:flex;align-items:center;justify-content:center;padding:26px;z-index:80">
+      <div style="background:var(--color-neutral-100);border-radius:var(--radius-lg);padding:22px;display:flex;flex-direction:column;gap:14px;max-width:300px;box-shadow:var(--shadow-lg)">
+        <div style="font-family:var(--font-heading);font-size:19px;line-height:1.2">{{ confirmTitle }}</div>
+        <div style="font-size:13.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">{{ confirmBody }}</div>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ confirmCancel }}" style="flex:1;padding:12px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-text);font-family:var(--font-body);font-size:14px;cursor:pointer">Abbrechen</button>
+          <button onClick="{{ confirmNext }}" style="flex:1;padding:12px;border:none;border-radius:999px;background:var(--color-accent-700);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">{{ confirmCta }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ exportOpen }}">
+    <div style="position:absolute;inset:0;background:rgba(32,30,29,.45);display:flex;align-items:center;justify-content:center;padding:26px;z-index:80">
+      <div style="background:var(--color-neutral-100);border-radius:var(--radius-lg);padding:22px;display:flex;flex-direction:column;gap:13px;max-width:300px;box-shadow:var(--shadow-lg)">
+        <div style="font-family:var(--font-heading);font-size:19px;line-height:1.2">Antworten exportieren</div>
+        <div style="font-size:13px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">Mit Passwort wird die CSV mit AES-256-GCM verschlüsselt (PBKDF2, 250.000 Runden). Ohne Passwort liegt sie im Klartext vor.</div>
+        <input type="password" value="{{ exportPass }}" onChange="{{ setExportPass }}" placeholder="Passwort (min. 6 Zeichen)" style="width:100%;box-sizing:border-box;padding:11px 15px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-body);font-size:14px;color:var(--color-text)">
+        <button onClick="{{ exportEncrypted }}" style="padding:12px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Verschlüsselt exportieren</button>
+        <div style="display:flex;gap:10px">
+          <button onClick="{{ exportCancel }}" style="flex:1;padding:11px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-text);font-family:var(--font-body);font-size:13px;cursor:pointer">Abbrechen</button>
+          <button onClick="{{ exportPlain }}" style="flex:1;padding:11px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-neutral-700);font-family:var(--font-body);font-size:13px;cursor:pointer">Ohne Passwort</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ backupOpen }}">
+    <div style="position:absolute;inset:0;background:rgba(32,30,29,.45);display:flex;align-items:center;justify-content:center;padding:22px;z-index:82">
+      <div style="background:var(--color-neutral-100);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:13px;width:100%;max-width:310px;box-sizing:border-box;box-shadow:var(--shadow-lg)">
+        <div style="font-family:var(--font-heading);font-size:19px;line-height:1.2">Sicherung</div>
+        <sc-if value="{{ backupReason }}">
+          <div style="font-size:12px;line-height:1.4;color:var(--color-accent-800);background:var(--color-accent-100);border-radius:var(--radius-md);padding:10px 12px;text-wrap:pretty">{{ backupReason }}</div>
+        </sc-if>
+        <div style="display:flex;gap:6px;padding:4px;background:var(--color-neutral-200);border-radius:999px">
+          <sc-for list="{{ backupModeOpts }}" as="m" hint-placeholder-count="2">
+            <button onClick="{{ m.onClick }}" style="{{ m.style }}">{{ m.label }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ backupIsOut }}">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:12.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">Alle Profile mit Fragen und Antworten in eine Datei, verschlüsselt mit AES-256-GCM. Bewahre das Passwort auf — ohne kommst du nicht mehr an die Sicherung.</div>
+            <input type="password" value="{{ backupPass }}" onChange="{{ setBackupPass }}" placeholder="Passwort (min. 6 Zeichen)" style="width:100%;box-sizing:border-box;padding:11px 15px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-body);font-size:14px;color:var(--color-text)">
+            <button onClick="{{ makeBackup }}" style="padding:12px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Sicherung erstellen</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ backupIsIn }}">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:12.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">Die Profile aus der Datei werden zusätzlich angelegt. Vorhandene bleiben unangetastet, gleiche Namen bekommen eine Nummer.</div>
+            <input type="file" accept=".wbm,.txt" onChange="{{ readBackupFile }}" style="width:100%;box-sizing:border-box;font-family:var(--font-body);font-size:12px;color:var(--color-neutral-700)">
+            <input type="password" value="{{ backupPass }}" onChange="{{ setBackupPass }}" placeholder="Passwort der Sicherung" style="width:100%;box-sizing:border-box;padding:11px 15px;border-radius:999px;border:1px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-body);font-size:14px;color:var(--color-text)">
+            <button onClick="{{ restoreBackup }}" style="{{ restoreBtnStyle }}">Sicherung einlesen</button>
+          </div>
+        </sc-if>
+        <button onClick="{{ backupCancel }}" style="padding:11px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-text);font-family:var(--font-body);font-size:13px;cursor:pointer">Schließen</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ notifyBanner }}">
+    <div style="position:absolute;left:12px;right:12px;top:12px;background:var(--color-neutral-900);color:var(--color-neutral-100);border-radius:var(--radius-md);padding:13px 15px;display:flex;align-items:center;gap:12px;z-index:95;box-shadow:var(--shadow-lg)">
+      <div style="width:28px;height:28px;flex:none;border-radius:999px;background:var(--color-accent-500)"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">Wohlbefinden-Monitor</div>
+        <div style="font-size:12px;opacity:.8">{{ notifyBanner }}</div>
+      </div>
+      <button onClick="{{ openBanner }}" style="padding:7px 13px;border:none;border-radius:999px;background:var(--color-accent);color:#fff;font-family:var(--font-body);font-size:12px;cursor:pointer">Öffnen</button>
+      <button onClick="{{ dismissBanner }}" style="border:none;background:transparent;color:var(--color-neutral-400);font-size:15px;cursor:pointer;padding:0 2px">×</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}">
+    <div style="position:absolute;left:16px;right:16px;bottom:26px;background:var(--color-neutral-900);color:var(--color-neutral-100);padding:12px 16px;border-radius:var(--radius-md);font-size:13px;z-index:90;text-align:center">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:760},&quot;storageKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;seed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;insetTop&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;insetBottom&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  state = {
+    ready: false, profiles: [], currentId: null, screen: 'menu',
+    newName: '', newTemplate: 'standard', profileError: '',
+    showLegacy: false, form: null, formError: '',
+    quiz: null, quizPhase: 'start',
+    statTarget: '', statLag: 'same', statLegacy: false, openText: null,
+    confirm: null, toast: '', reminder: true, reminderTime: '20:00', doneAnim: false,
+    exportFor: null, exportPass: '', notifyBanner: null,
+    lastBackup: null, backupOpen: false, backupPass: '', backupMode: 'out', importText: '',
+    extraTemplates: [], storagePersisted: null, backupReason: ''
+  };
+
+  // ---------- constants ----------
+  LOCKED = 'Allgemeines Glücklichkeitsbefinden';
+  KG = 'Glücklichkeit';
+  KV = 'Verhalten';
+  LAGS = [
+    ['same', 'Am Tag selber', [0], 'Antwort an Tag x ↔ Glücklichkeit an Tag x'],
+    ['d1', 'Nächster Tag', [1], 'Antwort an Tag x ↔ Glücklichkeit an Tag x+1'],
+    ['d2', 'Übernächster Tag', [2], 'Antwort an Tag x ↔ Glücklichkeit an Tag x+2'],
+    ['d3', 'Nächsten 3 Tage', [1, 2, 3], 'Antwort an Tag x ↔ Mittelwert der Glücklichkeit an Tag x+1 bis x+3'],
+    ['d7', 'Nächsten 7 Tage', [1, 2, 3, 4, 5, 6, 7], 'Antwort an Tag x ↔ Mittelwert der Glücklichkeit an Tag x+1 bis x+7'],
+    ['w2', 'Eine Woche später', [8, 9, 10, 11, 12, 13, 14], 'Antwort an Tag x ↔ Mittelwert der Glücklichkeit an Tag x+8 bis x+14']
+  ];
+
+  q(name, kind, type, opts) {
+    const o = opts || {};
+    return { name: name, text: o.text || '', kind: kind, type: type,
+      isCategory: !!o.isCategory, category: o.category || null,
+      legacy: false, locked: !!o.locked };
+  }
+
+  baseQuestion() {
+    return this.q(this.LOCKED, this.KG, 'rank', { text: 'Wie ging es dir heute im Allgemeinen?', locked: true });
+  }
+
+  // Nur unpersönliche Vorlagen stehen im Quelltext — eigene Fragebögen
+  // kommen als .wbt-Datei vom Gerät und werden nie mit ausgeliefert.
+  builtinTemplates() {
+    const G = this.KG, V = this.KV;
+    return [
+      { id: 'standard', label: 'Standard (nur Grundfrage)', questions: [this.baseQuestion()] },
+      { id: 'beispiel', label: 'Beispiel (allgemeiner Alltag)', questions: [
+        this.baseQuestion(),
+        this.q('Sport', V, 'bool', { text: 'Hast du Sport gemacht?', isCategory: true }),
+        this.q('Sport - Menge', V, 'rank', { text: 'Wie viel Sport war es? 1: wenig, 5: viel', category: 'Sport' }),
+        this.q('Draußen', V, 'bool', { text: 'Warst du heute draußen?' }),
+        this.q('Freunde treffen', V, 'bool', { text: 'Hast du dich mit Freunden getroffen?', isCategory: true }),
+        this.q('Freunde - Wohlbefinden', G, 'rank', { text: 'Wie schön war es? 1: geht so, 5: sehr', category: 'Freunde treffen' }),
+        this.q('Schlaf', G, 'rank', { text: 'Wie gut hast du geschlafen? 1: schlecht, 5: gut' }),
+        this.q('Entspannen', G, 'rank', { text: 'Wie viel konntest du dich entspannen? 1: wenig, 5: viel' })
+      ] }
+    ];
+  }
+
+  templateDefs() {
+    return this.builtinTemplates().concat(this.state.extraTemplates || []);
+  }
+
+  // ---------- Vorlagen als Datei (.wbt) ----------
+  // Klartext, damit die Datei lesbar und von Hand pflegbar bleibt: erste Zeile
+  // WBT1, danach JSON. Sie enthält nur Fragen, nie Antworten.
+  buildTemplateFile(name, questions) {
+    const qs = questions.filter(q => !q.legacy).map(q => ({
+      name: q.name, text: q.text || '', kind: q.kind, type: q.type,
+      isCategory: !!q.isCategory, category: q.category || null, locked: !!q.locked
+    }));
+    return 'WBT1\n' + JSON.stringify({ v: 1, name: name, created: new Date().toISOString(), questions: qs }, null, 1);
+  }
+
+  parseTemplateFile(text) {
+    const t = String(text).replace(/^﻿/, '').trim();
+    const body = t.slice(0, 4) === 'WBT1' ? t.slice(t.indexOf('\n') + 1) : t;
+    const json = JSON.parse(body);
+    const list = json.questions;
+    if (!Array.isArray(list) || !list.length) throw new Error('keine Fragen');
+    const seen = {};
+    const questions = [];
+    list.forEach(raw => {
+      const name = String(raw && raw.name || '').trim();
+      if (!name || seen[name.toLowerCase()]) return;
+      seen[name.toLowerCase()] = true;
+      questions.push(this.q(name, raw.kind === this.KG ? this.KG : this.KV, raw.type === 'bool' ? 'bool' : 'rank', {
+        text: String(raw.text || ''),
+        isCategory: !!raw.isCategory,
+        category: raw.category ? String(raw.category) : null,
+        locked: name === this.LOCKED
+      }));
+    });
+    if (!questions.length) throw new Error('keine gültigen Fragen');
+    // Die Grundfrage trägt die Statistik — fehlt sie in der Datei, kommt sie
+    // vorne dazu, sonst wird sie an den Anfang sortiert.
+    const iBase = questions.findIndex(q => q.name === this.LOCKED);
+    if (iBase < 0) questions.unshift(this.baseQuestion());
+    else if (iBase > 0) questions.unshift(questions.splice(iBase, 1)[0]);
+    // Ein Kategorieverweis ins Leere würde die Frage unsichtbar machen.
+    const cats = {};
+    questions.forEach(q => { if (q.isCategory) cats[q.name] = true; });
+    questions.forEach(q => { if (q.category && !cats[q.category]) q.category = null; });
+    return { name: String(json.name || 'Vorlage aus Datei').trim() || 'Vorlage aus Datei', questions: questions };
+  }
+
+  readTemplateFile = e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const tpl = this.parseTemplateFile(String(fr.result));
+        const id = 'file_' + Date.now();
+        const entry = { id: id, label: tpl.name + ' (Datei)', questions: tpl.questions };
+        this.setState({
+          extraTemplates: (this.state.extraTemplates || []).concat([entry]),
+          newTemplate: id, profileError: ''
+        });
+        this.flash('Vorlage „' + tpl.name + '“ geladen: ' + tpl.questions.length + ' Fragen.');
+      } catch (err) {
+        this.setState({ profileError: 'Die Datei konnte nicht gelesen werden.' });
+      }
+    };
+    fr.readAsText(f);
+  };
+
+  exportTemplate = async () => {
+    const p = this.current();
+    if (!p) return;
+    const text = this.buildTemplateFile(p.name, p.questions);
+    const safe = p.name.replace(/[^\wÄÖÜäöüß -]/g, '').trim() || 'vorlage';
+    const how = await this.deliverFile('vorlage-' + safe.toLowerCase().replace(/\s+/g, '-') + '.wbt', text, 'text/plain');
+    if (how !== 'cancel') this.flash('Vorlage gesichert — Fragen ohne Antworten.');
+  };
+
+  // ---------- native bridge ----------
+  // A native shell (Capacitor) sets window.WBMNative before the app loads.
+  // Every call falls back to the web path when the bridge is absent.
+  get native() { return (typeof window !== 'undefined' && window.WBMNative) || null; }
+
+  // ---------- device key (non-extractable AES-256-GCM in IndexedDB) ----------
+  get storeKey() { return 'wbm_' + (this.props.storageKey || 'default'); }
+
+  deviceKey() {
+    if (this._keyP) return this._keyP;
+    this._keyP = new Promise((res, rej) => {
+      const req = indexedDB.open('wbm-keys-' + (this.props.storageKey || 'default'), 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore('keys'); };
+      req.onerror = () => rej(req.error);
+      req.onsuccess = () => {
+        const st = req.result.transaction('keys', 'readwrite').objectStore('keys');
+        const g = st.get('main');
+        g.onerror = () => rej(g.error);
+        g.onsuccess = () => {
+          if (g.result) return res(g.result);
+          crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
+            .then(k => { try { st.put(k, 'main'); } catch (e) {} res(k); }, rej);
+        };
+      };
+    });
+    return this._keyP;
+  }
+
+  async writeStore(text) {
+    if (this.native && this.native.secureSet) { try { await this.native.secureSet(this.storeKey, text); return; } catch (e) {} }
+    try {
+      const key = await this.deviceKey();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(text));
+      const buf = new Uint8Array(12 + ct.byteLength);
+      buf.set(iv, 0); buf.set(new Uint8Array(ct), 12);
+      let bin = ''; buf.forEach(b => { bin += String.fromCharCode(b); });
+      localStorage.setItem(this.storeKey, 'ENC1:' + btoa(bin));
+    } catch (e) {
+      localStorage.setItem(this.storeKey, text);
+    }
+  }
+
+  async readStore() {
+    if (this.native && this.native.secureGet) { try { const v = await this.native.secureGet(this.storeKey); if (v) return v; } catch (e) {} }
+    const raw = localStorage.getItem(this.storeKey);
+    if (!raw) return null;
+    if (raw.slice(0, 5) !== 'ENC1:') return raw;
+    const key = await this.deviceKey();
+    const bin = atob(raw.slice(5));
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
+    return new TextDecoder().decode(pt);
+  }
+
+  // ---------- Speicher als dauerhaft anmelden ----------
+  // Ohne diese Marke gilt der Inhalt dem Browser als Zwischenspeicher und darf
+  // bei Platzmangel wegfallen. Gegen bewusstes Löschen der Browserdaten hilft
+  // sie nicht — dagegen hilft nur die Sicherung.
+  async checkStorage() {
+    let ok = null;
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        ok = await navigator.storage.persisted();
+        if (!ok) ok = await navigator.storage.persist();
+      }
+    } catch (e) { ok = null; }
+    this.setState({ storagePersisted: ok });
+  }
+
+  // Auf dem iPhone landet ein Download in einem Zwischenordner; über das
+  // Teilen-Blatt geht die Datei direkt nach „Dateien“ oder iCloud Drive.
+  async deliverFile(name, text, mime) {
+    if (this.native && this.native.writeBackup) {
+      try { await this.native.writeBackup(name, text); return 'native'; } catch (e) {}
+    }
+    try {
+      if (navigator.share && navigator.canShare && typeof File === 'function') {
+        const file = new File([text], name, { type: mime || 'text/plain' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: name });
+          return 'share';
+        }
+      }
+    } catch (e) {
+      // Abbruch im Teilen-Blatt ist eine Entscheidung, kein Fehler. Jeder
+      // andere Fehler (etwa abgelaufene Tippgeste) fällt auf den Download.
+      if (e && e.name === 'AbortError') return 'cancel';
+    }
+    this.download(name, text);
+    return 'download';
+  }
+
+  async componentDidMount() {
+    this.checkStorage();
+    let saved = null;
+    try { const raw = await this.readStore(); saved = raw ? JSON.parse(raw) : null; } catch (e) { saved = null; }
+    if (saved && saved.profiles && saved.profiles.length) {
+      this.setState({ ready: true, profiles: saved.profiles, currentId: saved.currentId, screen: 'menu',
+        reminder: saved.reminder !== false, reminderTime: saved.reminderTime || '20:00',
+        lastBackup: saved.lastBackup || null }, () => { this.persist(); this.scheduleReminder(); });
+    } else if (this.props.seed) {
+      const p = this.demoProfile();
+      this.setState({ ready: true, profiles: [p], currentId: p.id, screen: 'menu' }, () => { this.persist(); this.scheduleReminder(); });
+    } else {
+      this.setState({ ready: true, profiles: [], currentId: null, screen: 'onboarding' }, this.scheduleReminder);
+    }
+  }
+
+  componentWillUnmount() { clearTimeout(this._rt); clearTimeout(this._t); clearTimeout(this._bp); }
+
+  scheduleReminder = () => {
+    clearTimeout(this._rt);
+    const parts = (this.state.reminderTime || '20:00').split(':');
+    if (this.native && this.native.scheduleDailyReminder) {
+      try {
+        if (this.state.reminder) this.native.scheduleDailyReminder(Number(parts[0]) || 20, Number(parts[1]) || 0);
+        else if (this.native.cancelReminder) this.native.cancelReminder();
+        return;
+      } catch (e) {}
+    }
+    if (!this.state.reminder) return;
+    const now = new Date();
+    const next = new Date();
+    next.setHours(Number(parts[0]) || 20, Number(parts[1]) || 0, 0, 0);
+    if (next <= now) next.setTime(next.getTime() + 86400000);
+    const ms = Math.min(next - now, 2147483000);
+    this._rt = setTimeout(() => {
+      this.fireReminder();
+      this.scheduleReminder();
+    }, ms);
+  };
+
+  fireReminder() {
+    const p = this.current();
+    const today = this.dateKey(new Date());
+    if (p && p.rows.some(r => r.date === today)) return;
+    const body = 'Zeit für deinen Fragebogen.';
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('Wohlbefinden-Monitor', { body: body });
+      }
+    } catch (e) {}
+    this.setState({ notifyBanner: body });
+  }
+
+  // ---------- encryption ----------
+  async encryptText(plain, pass) {
+    const enc = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: salt, iterations: 250000, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, enc.encode(plain));
+    const blob = new Uint8Array(16 + 12 + ct.byteLength);
+    blob.set(salt, 0); blob.set(iv, 16); blob.set(new Uint8Array(ct), 28);
+    let bin = ''; blob.forEach(b => { bin += String.fromCharCode(b); });
+    return 'WBM1\n' + btoa(bin);
+  }
+
+  async decryptText(payload, pass) {
+    const nl = payload.indexOf('\n');
+    const b64 = (payload.slice(0, 4) === 'WBM1' ? payload.slice(nl + 1) : payload).replace(/\s/g, '');
+    const bin = atob(b64);
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: buf.slice(0, 16), iterations: 250000, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(16, 28) }, key, buf.slice(28));
+    return new TextDecoder().decode(pt);
+  }
+
+  // ---------- backup ----------
+  makeBackup = async () => {
+    const pass = this.state.backupPass;
+    if (pass.length < 6) return this.flash('Passwort: mindestens 6 Zeichen.');
+    const payload = JSON.stringify({ v: 1, created: new Date().toISOString(), profiles: this.state.profiles });
+    try {
+      const out = await this.encryptText(payload, pass);
+      const name = 'wohlbefinden-sicherung-' + this.dateKey(new Date()) + '.wbm';
+      const how = await this.deliverFile(name, out, 'text/plain');
+      if (how === 'cancel') return this.flash('Sicherung abgebrochen — nichts gespeichert.');
+      this.setState({ lastBackup: new Date().toISOString(), backupOpen: false, backupPass: '', backupReason: '' }, this.persist);
+      this.flash(how === 'share' ? 'Sicherung gesichert — leg sie in „Dateien“ ab.' : 'Sicherung erstellt.');
+    } catch (e) { this.flash('Sicherung fehlgeschlagen.'); }
+  };
+
+  readBackupFile = e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => this.setState({ importText: String(fr.result) });
+    fr.readAsText(f);
+  };
+
+  restoreBackup = async () => {
+    if (!this.state.importText) return this.flash('Bitte zuerst eine Datei wählen.');
+    try {
+      const json = JSON.parse(await this.decryptText(this.state.importText, this.state.backupPass));
+      if (!json.profiles || !json.profiles.length) throw new Error('leer');
+      const mine = this.state.profiles.slice();
+      json.profiles.forEach(p => {
+        let name = p.name, i = 2;
+        while (mine.some(x => x.name.toLowerCase() === name.toLowerCase())) { name = p.name + ' (' + i + ')'; i++; }
+        mine.push(Object.assign({}, p, { id: 'p' + Date.now() + '_' + i, name: name }));
+      });
+      this.save({ profiles: mine, backupOpen: false, backupPass: '', importText: '' });
+      this.flash(json.profiles.length + ' Profil(e) eingelesen.');
+    } catch (e) { this.flash('Konnte nicht gelesen werden — falsches Passwort?'); }
+  };
+
+  backupDue() {
+    const p = this.current();
+    if (!p || p.rows.length < 3) return false;
+    if (!this.state.lastBackup) return true;
+    return Date.now() - new Date(this.state.lastBackup).getTime() > 7 * 86400000;
+  }
+
+  backupAgeDays() {
+    if (!this.state.lastBackup) return null;
+    return Math.floor((Date.now() - new Date(this.state.lastBackup).getTime()) / 86400000);
+  }
+
+  // Was auf dem Hauptbildschirm steht, wenn die Sicherung hinterherhinkt.
+  backupWarnText() {
+    if (!this.backupDue()) return '';
+    const d = this.backupAgeDays();
+    const p = this.current();
+    const n = p ? p.rows.length : 0;
+    if (d === null) return n + ' Einträge, noch nie gesichert. Werden die Browserdaten gelöscht, sind sie weg.';
+    return 'Letzte Sicherung vor ' + d + ' Tagen. Alles danach hängt allein an den Browserdaten.';
+  }
+
+  openBackupOut = (reason) => {
+    this.setState({ backupOpen: true, backupMode: 'out', backupPass: '', importText: '',
+      backupReason: typeof reason === 'string' ? reason : '' });
+  };
+
+  persist = () => {
+    const text = JSON.stringify({
+      profiles: this.state.profiles, currentId: this.state.currentId,
+      reminder: this.state.reminder, reminderTime: this.state.reminderTime,
+      lastBackup: this.state.lastBackup
+    });
+    this._wq = (this._wq || Promise.resolve()).then(() => this.writeStore(text)).catch(() => {});
+  };
+
+  save(patch, cb) { this.setState(patch, () => { this.persist(); if (cb) cb(); }); }
+
+  current() { return this.state.profiles.find(p => p.id === this.state.currentId) || null; }
+
+  updateCurrent(fn, cb) {
+    const profiles = this.state.profiles.map(p => (p.id === this.state.currentId ? fn(Object.assign({}, p)) : p));
+    this.save({ profiles: profiles }, cb);
+  }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: '' }), 2200);
+  }
+
+  // ---------- demo data ----------
+  rng(seed) { let x = seed; return () => { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; }; }
+
+  demoProfile() {
+    const tpl = this.builtinTemplates()[1];
+    const qs = tpl.questions.map(q => Object.assign({}, q));
+    const r = this.rng(20260812);
+    const rows = [];
+    const clamp = v => Math.max(1, Math.min(5, Math.round(v * 10) / 10));
+    const today = new Date(); today.setHours(20, 30, 0, 0);
+    for (let i = 30; i >= 1; i--) {
+      const d = new Date(today.getTime() - i * 86400000);
+      if (r() < 0.08) continue;
+      const sport = r() > 0.45;
+      const freunde = r() > 0.55;
+      const draussen = r() > 0.35;
+      const schlaf = clamp(2 + r() * 3);
+      const v = {};
+      v[this.LOCKED] = clamp(1.8 + (sport ? 0.7 : 0) + (freunde ? 0.9 : 0) + (draussen ? 0.3 : 0) + (schlaf - 3) * 0.3 + r() * 0.8);
+      v['Sport'] = sport ? 1 : 0;
+      v['Freunde treffen'] = freunde ? 1 : 0;
+      v['Draußen'] = draussen ? 1 : 0;
+      v['Schlaf'] = schlaf;
+      v['Entspannen'] = clamp(2 + r() * 2.5 + (freunde ? 0.5 : 0));
+      if (sport) v['Sport - Menge'] = clamp(1.5 + r() * 3);
+      if (freunde) v['Freunde - Wohlbefinden'] = clamp(3 + r() * 2);
+      rows.push({ date: this.dateKey(d), ts: d.toISOString(), values: v });
+    }
+    return { id: 'p_demo', name: 'Beispielprofil', questions: qs, rows: rows, draft: null };
+  }
+
+  dateKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  fmt(iso) {
+    if (!iso) return null;
+    const d = new Date(iso);
+    const p = n => String(n).padStart(2, '0');
+    return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ', ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  // ---------- questionnaire order ----------
+  buildOrder(questions) {
+    const active = questions.filter(q => !q.legacy);
+    const locked = active.find(q => q.locked);
+    const rest = active.filter(q => !q.locked);
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+    const out = [], placed = {};
+    let pool = rest.slice();
+    while (pool.length) {
+      let idx = pool.findIndex(q => !q.category || placed[q.category] || !pool.some(r => r.name === q.category));
+      if (idx < 0) idx = 0;
+      const q = pool.splice(idx, 1)[0];
+      placed[q.name] = true;
+      out.push(q.name);
+    }
+    return (locked ? [locked.name] : []).concat(out);
+  }
+
+  visible(name) {
+    const p = this.current(); if (!p) return false;
+    const q = p.questions.find(x => x.name === name);
+    if (!q) return false;
+    if (!q.category) return true;
+    const v = this.state.quiz ? this.state.quiz.values[q.category] : undefined;
+    return v === 1;
+  }
+
+  saveDraft(quiz) {
+    this.updateCurrent(p => { p.draft = { ts: new Date().toISOString(), order: quiz.order, index: quiz.index, values: quiz.values }; return p; });
+  }
+
+  // ---------- correlation ----------
+  pearson(xs, ys) {
+    const n = xs.length; if (n < 3) return null;
+    let sx = 0, sy = 0; for (let i = 0; i < n; i++) { sx += xs[i]; sy += ys[i]; }
+    const mx = sx / n, my = sy / n;
+    let a = 0, bx = 0, by = 0;
+    for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; a += dx * dy; bx += dx * dx; by += dy * dy; }
+    if (bx <= 1e-9 || by <= 1e-9) return null;
+    return a / Math.sqrt(bx * by);
+  }
+
+  computeBars(offsetsArg) {
+    const p = this.current(); if (!p) return [];
+    const target = this.state.statTarget || this.LOCKED;
+    const offsets = offsetsArg || (this.LAGS.find(l => l[0] === this.state.statLag) || this.LAGS[0])[2];
+    const byDate = {}; p.rows.forEach(r => { byDate[r.date] = r.values; });
+    const pool = p.questions.filter(q => q.name !== target && (this.state.statLegacy || !q.legacy));
+    const out = [];
+    pool.forEach(q => {
+      const xs = [], ys = [];
+      p.rows.forEach(row => {
+        const xv = row.values[q.name];
+        if (xv === undefined || xv === null) return;
+        const base = new Date(row.date + 'T12:00:00');
+        let sum = 0, cnt = 0;
+        offsets.forEach(o => {
+          const k = this.dateKey(new Date(base.getTime() + o * 86400000));
+          const vv = byDate[k] ? byDate[k][target] : undefined;
+          if (vv !== undefined && vv !== null) { sum += vv; cnt++; }
+        });
+        if (!cnt) return;
+        xs.push(xv); ys.push(sum / cnt);
+      });
+      const r = this.pearson(xs, ys);
+      if (r === null) return;
+      out.push({ name: q.name, text: q.text, legacy: q.legacy, r: r, n: xs.length });
+    });
+    out.sort((a, b) => b.r - a.r);
+    return out;
+  }
+
+  // Ein leeres Diagramm hat mehrere Gründe, und „keine Daten“ ist meistens
+  // der falsche. Diese Auskunft nennt den, der wirklich zutrifft.
+  statsEmptyReason() {
+    const p = this.current();
+    if (!p) return 'Kein Profil ausgewählt.';
+    if (!p.rows.length) return 'Noch keine Antworten erfasst. Fülle den Fragebogen an mindestens drei Tagen aus.';
+
+    const target = this.state.statTarget || this.LOCKED;
+    const byDate = {}; p.rows.forEach(r => { byDate[r.date] = r.values; });
+    const dates = Object.keys(byDate);
+
+    if (dates.length < 3) {
+      const mehrfach = p.rows.length > dates.length
+        ? ' Mehrmals am selben Tag ausfüllen zählt als ein Tag.' : '';
+      return 'Erst ' + dates.length + (dates.length === 1 ? ' Tag' : ' Tage') +
+        ' erfasst — die Auswertung braucht mindestens 3 verschiedene Tage.' + mehrfach;
+    }
+
+    const pool = p.questions.filter(q => q.name !== target && (this.state.statLegacy || !q.legacy));
+    if (!pool.length) return 'Außer „' + target + '“ gibt es keine Frage zum Vergleichen. Lege im Fragebogen weitere Fragen an.';
+
+    const varies = arr => arr.length > 1 && arr.some(v => v !== arr[0]);
+    const tv = dates.map(k => byDate[k][target]).filter(v => v !== undefined && v !== null);
+    if (tv.length < 3) return 'Die Frage „' + target + '“ wurde erst an ' + tv.length +
+      (tv.length === 1 ? ' Tag' : ' Tagen') + ' beantwortet. Ab drei Tagen entsteht eine Auswertung.';
+    if (!varies(tv)) return 'Die Antwort auf „' + target + '“ ist an allen Tagen dieselbe. Ohne Schwankung gibt es keinen Zusammenhang zu berechnen.';
+
+    // Liegt es am gewählten Zeitraum? Am Tag selber gibt es die meisten Paare.
+    if (this.state.statLag !== 'same' && this.computeBars([0]).length) {
+      const label = (this.LAGS.find(l => l[0] === this.state.statLag) || this.LAGS[0])[1];
+      return 'Für den Zeitraum „' + label + '“ liegen noch zu wenige passende Tagespaare vor. Unter „Am Tag selber“ gibt es bereits Ergebnisse.';
+    }
+
+    return 'Die übrigen Fragen sind bisher an jedem Tag gleich beantwortet. Sobald sich eine Antwort ändert, erscheinen hier Balken.';
+  }
+
+  barColor(r) {
+    const t = Math.min(1, Math.abs(r));
+    const mix = (a, b) => Math.round(a + (b - a) * t);
+    if (r >= 0) return 'rgb(' + mix(247, 33) + ',' + mix(247, 102) + ',' + mix(247, 172) + ')';
+    return 'rgb(' + mix(247, 178) + ',' + mix(247, 24) + ',' + mix(247, 43) + ')';
+  }
+
+  // ---------- actions ----------
+  createProfile = () => {
+    const name = (this.state.newName || '').trim();
+    if (!name) return this.setState({ profileError: 'Bitte einen Namen eingeben.' });
+    if (this.state.profiles.some(p => p.name.toLowerCase() === name.toLowerCase()))
+      return this.setState({ profileError: 'Es gibt bereits ein Profil mit diesem Namen.' });
+    const tpl = this.templateDefs().find(t => t.id === this.state.newTemplate) || this.templateDefs()[0];
+    const prof = { id: 'p' + Date.now(), name: name, questions: tpl.questions.map(q => Object.assign({}, q)), rows: [], draft: null };
+    this.save({ profiles: this.state.profiles.concat([prof]), currentId: prof.id, newName: '', profileError: '', screen: 'menu' });
+    this.flash('Profil „' + name + '“ angelegt.');
+  };
+
+  askDelete(id) {
+    const p = this.state.profiles.find(x => x.id === id);
+    this.setState({ confirm: { kind: 'profile', id: id, name: p ? p.name : '', step: 1, total: 3 } });
+  }
+
+  confirmNext = () => {
+    const c = this.state.confirm; if (!c) return;
+    if (c.step < c.total) return this.setState({ confirm: Object.assign({}, c, { step: c.step + 1 }) });
+    if (c.kind === 'profile') {
+      const rest = this.state.profiles.filter(p => p.id !== c.id);
+      const cur = this.state.currentId === c.id ? (rest[0] ? rest[0].id : null) : this.state.currentId;
+      this.save({ profiles: rest, currentId: cur, confirm: null, screen: rest.length ? this.state.screen : 'onboarding' });
+      this.flash('Profil gelöscht.');
+    } else {
+      const kill = {}; kill[c.name] = true;
+      (c.deps || []).forEach(n => { kill[n] = true; });
+      this.updateCurrent(p => {
+        p.questions = p.questions.map(q => (kill[q.name] ? Object.assign({}, q, { legacy: true }) : q));
+        return p;
+      });
+      this.setState({ confirm: null });
+      this.flash((c.deps || []).length ? 'Kategorie und ' + c.deps.length + ' zugehörige Fragen gelöscht.' : 'Frage gelöscht.');
+    }
+  };
+
+  buildCsv(p) {
+    const cols = p.questions.map(q => q.name);
+    const esc = s => '"' + String(s).replace(/"/g, '""') + '"';
+    const lines = [['timestamp'].concat(cols).map(esc).join(',')];
+    p.rows.forEach(r => {
+      lines.push([r.ts].concat(cols.map(c => (r.values[c] === undefined || r.values[c] === null ? 'NaN' : r.values[c]))).map(esc).join(','));
+    });
+    return lines.join('\n');
+  }
+
+  download(name, text) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+    a.download = name; a.click();
+  }
+
+  doExport = async (encrypted) => {
+    const p = this.state.profiles.find(x => x.id === this.state.exportFor); if (!p) return;
+    const csv = this.buildCsv(p);
+    if (!encrypted) {
+      const how = await this.deliverFile(p.name + '.csv', csv, 'text/csv');
+      if (how === 'cancel') return this.flash('Export abgebrochen.');
+      this.setState({ exportFor: null, exportPass: '' });
+      return this.flash('CSV exportiert — unverschlüsselt.');
+    }
+    const pass = this.state.exportPass;
+    if (pass.length < 6) return this.flash('Passwort: mindestens 6 Zeichen.');
+    try {
+      const out = await this.encryptText(csv, pass);
+      const how = await this.deliverFile(p.name + '.csv.enc', out, 'text/plain');
+      if (how === 'cancel') return this.flash('Export abgebrochen.');
+      this.setState({ exportFor: null, exportPass: '' });
+      this.flash('Verschlüsselt exportiert (AES-256-GCM).');
+    } catch (e) { this.flash('Verschlüsselung fehlgeschlagen.'); }
+  };
+
+  openForm(name) {
+    const p = this.current();
+    const q = name ? p.questions.find(x => x.name === name) : null;
+    this.setState({
+      screen: 'qform', formError: '',
+      form: q ? { orig: q.name, name: q.name, text: q.text, kind: q.kind, type: q.type, isCategory: q.isCategory, category: q.category || '', locked: q.locked }
+              : { orig: null, name: '', text: '', kind: this.KV, type: 'bool', isCategory: false, category: '', locked: false }
+    });
+  }
+
+  saveQuestion = () => {
+    const f = this.state.form, p = this.current();
+    const name = (f.name || '').trim();
+    if (!name) return this.setState({ formError: 'Bitte einen Namen eingeben.' });
+    if (!(f.text || '').trim()) return this.setState({ formError: 'Bitte einen Fragetext eingeben.' });
+    if (p.questions.some(q => q.name.toLowerCase() === name.toLowerCase() && q.name !== f.orig))
+      return this.setState({ formError: 'Dieser Name wird bereits von einer aktuellen oder veralteten Frage benutzt.' });
+    if (f.category && f.category === name) return this.setState({ formError: 'Eine Frage kann nicht ihre eigene Kategorie sein.' });
+    const next = { name: name, text: f.text.trim(), kind: f.kind, type: f.type,
+      isCategory: f.type === 'bool' ? f.isCategory : false, category: f.category || null, legacy: false, locked: f.locked };
+    this.updateCurrent(prof => {
+      if (f.orig) {
+        prof.questions = prof.questions.map(q => (q.name === f.orig ? next : q));
+        if (f.orig !== name) prof.questions = prof.questions.map(q => (q.category === f.orig ? Object.assign({}, q, { category: name }) : q));
+      } else prof.questions = prof.questions.concat([next]);
+      return prof;
+    });
+    this.setState({ screen: 'editor', form: null, formError: '' });
+  };
+
+  startQuiz = () => {
+    const p = this.current();
+    const order = this.buildOrder(p.questions);
+    this.setState({ quiz: { order: order, index: 0, values: {} }, quizPhase: 'question' });
+  };
+
+  step(dir) {
+    const q = this.state.quiz;
+    let i = q.index;
+    while (true) {
+      i += dir;
+      if (i < 0) { i = 0; break; }
+      if (i >= q.order.length) { i = q.order.length; break; }
+      if (this.visible(q.order[i])) break;
+    }
+    if (i >= q.order.length) {
+      this.saveDraft(Object.assign({}, q, { index: q.order.length - 1 }));
+      return this.setState({ quizPhase: 'done', doneAnim: false }, () => setTimeout(() => this.setState({ doneAnim: true }), 60));
+    }
+    const nq = Object.assign({}, q, { index: i });
+    this.setState({ quiz: nq });
+    this.saveDraft(nq);
+  }
+
+  setAnswer(name, val) {
+    const q = this.state.quiz;
+    const values = Object.assign({}, q.values); values[name] = val;
+    this.setState({ quiz: Object.assign({}, q, { values: values }) });
+  }
+
+  finishQuiz = () => {
+    const q = this.state.quiz;
+    const now = new Date();
+    const values = {};
+    q.order.forEach(n => { if (q.values[n] !== undefined) values[n] = q.values[n]; });
+    this.updateCurrent(p => {
+      p.rows = p.rows.concat([{ date: this.dateKey(now), ts: now.toISOString(), values: values }]);
+      p.draft = null;
+      return p;
+    });
+    this.setState({ quiz: null, quizPhase: 'start', screen: 'menu' });
+    this.flash('Antworten gespeichert.');
+    // Der Moment, in dem die Sicherung am wenigsten stört: der Durchlauf ist
+    // fertig, der neue Eintrag liegt noch ungesichert im Browser.
+    if (this.backupDue()) {
+      clearTimeout(this._bp);
+      this._bp = setTimeout(() => {
+        if (this.backupDue()) this.openBackupOut(this.backupWarnText());
+      }, 900);
+    }
+  };
+
+  toggleReminder = () => {
+    const on = !this.state.reminder;
+    this.setState({ reminder: on }, () => { this.persist(); this.scheduleReminder(); });
+    if (on && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch (e) {}
+    }
+  };
+
+  setReminderTime = e => {
+    const t = e.target.value || '20:00';
+    this.setState({ reminderTime: t }, () => { this.persist(); this.scheduleReminder(); });
+  };
+
+  resetApp = () => {
+    try { localStorage.removeItem(this.storeKey); } catch (e) {}
+    if (this.props.seed) {
+      const p = this.demoProfile();
+      this.setState({ profiles: [p], currentId: p.id, screen: 'menu', quiz: null, quizPhase: 'start' }, this.persist);
+    } else {
+      this.setState({ profiles: [], currentId: null, screen: 'onboarding', quiz: null, quizPhase: 'start' });
+    }
+  };
+
+  // ---------- render ----------
+  segStyle(active) {
+    return { flex: 1, padding: '10px 6px', border: 'none', borderRadius: 999,
+      background: active ? 'var(--color-accent)' : 'transparent',
+      color: active ? '#fff' : 'var(--color-neutral-700)',
+      fontFamily: 'var(--font-body)', fontSize: 13.5, fontWeight: active ? 700 : 500, cursor: 'pointer' };
+  }
+
+  boxStyle(on) {
+    return { width: 20, height: 20, flex: 'none', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: on ? 'var(--color-accent)' : 'var(--color-neutral-100)',
+      border: '1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-neutral-400)'),
+      color: '#fff', fontSize: 12, lineHeight: 1 };
+  }
+
+  renderVals() {
+    const s = this.state, p = this.current();
+    const screen = s.screen;
+    const titles = { profiles: 'Profile verwalten', editor: 'Fragebogen anpassen', qform: s.form && s.form.orig ? 'Frage bearbeiten' : 'Neue Frage', quiz: 'Fragebogen ausfüllen', stats: 'Wohlbefindsamskorrelationen' };
+    const lastRow = p && p.rows.length ? p.rows[p.rows.length - 1] : null;
+
+    const v = {
+      insetTopStyle: { height: Number(this.props.insetTop) || 0, flex: 'none' },
+      insetBottomStyle: { height: Number(this.props.insetBottom) || 0, flex: 'none' },
+      showHeader: screen !== 'menu' && screen !== 'onboarding',
+      headerTitle: titles[screen] || '',
+      goBack: () => {
+        if (screen === 'qform') return this.setState({ screen: 'editor', form: null, formError: '' });
+        if (screen === 'quiz') return this.setState({ screen: 'menu', quiz: null, quizPhase: 'start' });
+        this.setState({ screen: 'menu', profileError: '' });
+      },
+      isOnboarding: screen === 'onboarding',
+      isMenu: screen === 'menu',
+      isProfiles: screen === 'profiles',
+      isEditor: screen === 'editor',
+      isQForm: screen === 'qform',
+      isStats: screen === 'stats',
+      isQuizStart: screen === 'quiz' && s.quizPhase === 'start',
+      isQuizResume: screen === 'quiz' && s.quizPhase === 'resume',
+      isQuizQuestion: screen === 'quiz' && s.quizPhase === 'question',
+      isQuizDone: screen === 'quiz' && s.quizPhase === 'done',
+      toast: s.toast,
+      currentProfileName: p ? p.name : '—',
+      lastFilledLine: lastRow ? 'Letztes Mal ausgefüllt: ' + this.fmt(lastRow.ts) : 'Noch nie ausgefüllt',
+      newName: s.newName,
+      setNewName: e => this.setState({ newName: e.target.value, profileError: '' }),
+      newTemplate: s.newTemplate,
+      setNewTemplate: e => this.setState({ newTemplate: e.target.value }),
+      templateOpts: this.templateDefs().map(t => ({ id: t.id, label: t.label })),
+      profileError: s.profileError,
+      createProfile: this.createProfile,
+      resetApp: this.resetApp,
+      reminder: s.reminder,
+      reminderSub: s.reminder ? 'Täglich um ' + s.reminderTime + ' Uhr' : 'Aus',
+      reminderTime: s.reminderTime,
+      setReminderTime: this.setReminderTime,
+      toggleReminder: this.toggleReminder,
+      notifyBanner: s.notifyBanner,
+      dismissBanner: () => this.setState({ notifyBanner: null }),
+      openBanner: () => this.setState({ notifyBanner: null, screen: 'quiz', quizPhase: p && p.draft ? 'resume' : 'start', quiz: null }),
+      exportOpen: !!s.exportFor,
+      exportPass: s.exportPass,
+      setExportPass: e => this.setState({ exportPass: e.target.value }),
+      exportPlain: () => this.doExport(false),
+      exportEncrypted: () => this.doExport(true),
+      exportCancel: () => this.setState({ exportFor: null, exportPass: '' }),
+      backupDue: this.backupDue(),
+      backupCardStyle: { display: 'flex', flexDirection: 'column', gap: 9, padding: 16, borderRadius: 'var(--radius-md)',
+        background: this.backupDue() ? 'var(--color-accent-100)' : 'var(--color-accent-2-100)' },
+      backupLine: s.lastBackup ? 'Letzte Sicherung: ' + this.fmt(s.lastBackup) : 'Noch keine Sicherung angelegt',
+      backupWarn: this.backupDue() ? this.backupWarnText() : '',
+      backupNow: () => this.openBackupOut(''),
+      backupReason: s.backupReason,
+      storageLine: s.storagePersisted === true
+        ? 'Speicher als dauerhaft markiert.'
+        : (s.storagePersisted === false
+            ? 'Speicher nicht als dauerhaft markiert — das System darf ihn bei Platzmangel räumen.'
+            : 'Dauerhafter Speicher wird von diesem Browser nicht gemeldet.'),
+      storageDotStyle: { width: 8, height: 8, flex: 'none', borderRadius: 999,
+        background: s.storagePersisted === true ? 'var(--color-accent-2-500)' : 'var(--color-accent-500)' },
+      exportTemplate: this.exportTemplate,
+      readTemplateFile: this.readTemplateFile,
+      openBackup: () => this.openBackupOut(''),
+      backupOpen: s.backupOpen,
+      backupCancel: () => this.setState({ backupOpen: false, backupPass: '', importText: '', backupReason: '' }),
+      backupPass: s.backupPass,
+      setBackupPass: e => this.setState({ backupPass: e.target.value }),
+      backupIsOut: s.backupMode === 'out',
+      backupIsIn: s.backupMode === 'in',
+      restoreBtnStyle: { padding: 12, border: 'none', borderRadius: 999, fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,
+        background: s.importText ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+        color: s.importText ? '#fff' : 'var(--color-neutral-600)',
+        cursor: s.importText ? 'pointer' : 'default' },
+      backupModeOpts: [['out', 'Sichern'], ['in', 'Einlesen']].map(m => ({
+        label: m[1], style: this.segStyle(s.backupMode === m[0]),
+        onClick: () => this.setState({ backupMode: m[0], backupPass: '', importText: '' })
+      })),
+      makeBackup: this.makeBackup,
+      restoreBackup: this.restoreBackup,
+      readBackupFile: this.readBackupFile,
+      importReady: !!s.importText,
+      reminderToggleStyle: { width: 46, height: 28, flex: 'none', borderRadius: 999, border: 'none', cursor: 'pointer', padding: 3,
+        display: 'flex', justifyContent: s.reminder ? 'flex-end' : 'flex-start',
+        background: s.reminder ? 'var(--color-accent-2-500)' : 'var(--color-neutral-400)' },
+      reminderKnobStyle: { width: 22, height: 22, borderRadius: 999, background: '#fff' },
+      menuItems: [
+        ['Profile verwalten', 'Wechseln, anlegen, löschen', 'var(--color-accent-300)', 'profiles'],
+        ['Fragebogen anpassen', 'Fragen und Kategorien bearbeiten', 'var(--color-accent-2-300)', 'editor'],
+        ['Fragebogen ausfüllen', 'Der tägliche Durchlauf', 'var(--color-accent-500)', 'quiz'],
+        ['Wohlbefindsamskorrelationen', 'Was hängt mit deinem Befinden zusammen', 'var(--color-accent-2-500)', 'stats']
+      ].map(m => ({
+        title: m[0], sub: m[1],
+        dotStyle: { width: 34, height: 34, flex: 'none', borderRadius: 999, background: m[2] },
+        onClick: () => {
+          if (m[3] === 'quiz') {
+            const phase = p && p.draft ? 'resume' : 'start';
+            return this.setState({ screen: 'quiz', quizPhase: phase, quiz: null });
+          }
+          if (m[3] === 'stats') return this.setState({ screen: 'stats', statTarget: s.statTarget || this.LOCKED, openText: null });
+          this.setState({ screen: m[3], profileError: '' });
+        }
+      })),
+      profileRows: s.profiles.map(pr => ({
+        id: pr.id, name: pr.name,
+        meta: pr.rows.length + ' Einträge · ' + pr.questions.filter(q => !q.legacy).length + ' Fragen',
+        dotStyle: { width: 18, height: 18, flex: 'none', borderRadius: 999,
+          border: '2px solid ' + (pr.id === s.currentId ? 'var(--color-accent)' : 'var(--color-neutral-400)'),
+          background: pr.id === s.currentId ? 'var(--color-accent)' : 'transparent',
+          boxShadow: pr.id === s.currentId ? 'inset 0 0 0 3px var(--color-neutral-100)' : 'none' },
+        onSelect: () => this.save({ currentId: pr.id }),
+        onExport: () => this.setState({ exportFor: pr.id, exportPass: '' }),
+        onDelete: () => this.askDelete(pr.id)
+      })),
+      showLegacy: s.showLegacy,
+      toggleLegacy: () => this.setState({ showLegacy: !s.showLegacy }),
+      legacyBoxStyle: this.boxStyle(s.showLegacy),
+      legacyCheck: s.showLegacy ? '✓' : '',
+      newQuestion: () => this.openForm(null),
+      questionRows: !p ? [] : p.questions.filter(q => s.showLegacy || !q.legacy).map(q => ({
+        name: q.name, text: q.text,
+        kindTag: q.kind === this.KG ? 'Glück' : 'Verhalten',
+        kindTagStyle: { flex: 'none', padding: '3px 9px', borderRadius: 999, fontSize: 10.5, fontWeight: 700,
+          background: q.kind === this.KG ? 'var(--color-accent-200)' : 'var(--color-accent-2-200)',
+          color: q.kind === this.KG ? 'var(--color-accent-800)' : 'var(--color-accent-2-800)' },
+        cardStyle: { display: 'flex', flexDirection: 'column', gap: 8, padding: 14, borderRadius: 'var(--radius-md)',
+          background: q.legacy ? 'transparent' : 'var(--color-neutral-100)',
+          border: '1px solid var(--color-neutral-300)', opacity: q.legacy ? 0.55 : 1 },
+        meta: [q.type === 'bool' ? 'Ja/Nein' : 'Ranking 1–5', q.isCategory ? 'Kategorie' : null, q.category ? '↳ ' + q.category : null, q.legacy ? 'veraltet' : null, q.locked ? 'fest' : null].filter(Boolean).join(' · '),
+        canDelete: !q.locked && !q.legacy,
+        onEdit: () => this.openForm(q.name),
+        onDelete: () => {
+          const deps = p.questions.filter(x => !x.legacy && x.category === q.name).map(x => x.name);
+          this.setState({ confirm: { kind: 'question', name: q.name, deps: deps, step: 1, total: deps.length ? 3 : 1 } });
+        }
+      })),
+      // form
+      fName: s.form ? s.form.name : '',
+      setFName: e => this.setState({ form: Object.assign({}, s.form, { name: e.target.value }), formError: '' }),
+      fText: s.form ? s.form.text : '',
+      setFText: e => this.setState({ form: Object.assign({}, s.form, { text: e.target.value }), formError: '' }),
+      fIsBool: s.form ? s.form.type === 'bool' : false,
+      fCategory: s.form ? s.form.category : '',
+      setFCategory: e => this.setState({ form: Object.assign({}, s.form, { category: e.target.value }) }),
+      kindOpts: [this.KG, this.KV].map(k => ({ label: k, style: this.segStyle(s.form && s.form.kind === k), onClick: () => this.setState({ form: Object.assign({}, s.form, { kind: k }) }) })),
+      typeOpts: [['bool', 'Ja / Nein'], ['rank', 'Ranking 1–5']].map(t => ({ label: t[1], style: this.segStyle(s.form && s.form.type === t[0]), onClick: () => this.setState({ form: Object.assign({}, s.form, { type: t[0], isCategory: t[0] === 'bool' ? s.form.isCategory : false }) }) })),
+      toggleIsCategory: () => this.setState({ form: Object.assign({}, s.form, { isCategory: !s.form.isCategory }) }),
+      catBoxStyle: this.boxStyle(s.form && s.form.isCategory),
+      catCheck: s.form && s.form.isCategory ? '✓' : '',
+      categoryOpts: [{ value: '', label: 'keine' }].concat(!p ? [] : p.questions.filter(q => q.isCategory && !q.legacy && (!s.form || q.name !== s.form.orig)).map(q => ({ value: q.name, label: q.name }))),
+      formError: s.formError,
+      cancelForm: () => this.setState({ screen: 'editor', form: null, formError: '' }),
+      saveQuestion: this.saveQuestion,
+      // quiz
+      startQuiz: this.startQuiz,
+      resumeLine: p && p.draft ? 'Unvollständiger Fragebogen von ' + this.fmt(p.draft.ts) + ' vorhanden' : '',
+      resumeDraft: () => {
+        const d = p.draft;
+        this.setState({ quiz: { order: d.order, index: d.index, values: Object.assign({}, d.values) }, quizPhase: 'question' });
+      },
+      discardDraft: () => { this.updateCurrent(pr => { pr.draft = null; return pr; }); this.setState({ quizPhase: 'start' }); },
+      finishQuiz: this.finishQuiz,
+      confirmOpen: !!s.confirm,
+      confirmCancel: () => this.setState({ confirm: null }),
+      confirmNext: this.confirmNext
+    };
+
+    // confirm dialog copy
+    if (s.confirm) {
+      if (s.confirm.kind === 'profile') {
+        const texts = [
+          ['Profil löschen?', 'Möchtest du das Profil „' + s.confirm.name + '“ wirklich löschen?', 'Ja, löschen'],
+          ['Bist du sicher?', 'Alle Fragen und alle gespeicherten Antworten dieses Profils gehen verloren.', 'Ja, sicher'],
+          ['Letzte Nachfrage', 'Das kann nicht rückgängig gemacht werden. „' + s.confirm.name + '“ endgültig löschen?', 'Endgültig löschen']
+        ][s.confirm.step - 1];
+        v.confirmTitle = texts[0]; v.confirmBody = texts[1]; v.confirmCta = texts[2];
+      } else if ((s.confirm.deps || []).length) {
+        const deps = s.confirm.deps;
+        const texts = [
+          ['Kategorie löschen?', '„' + s.confirm.name + '“ ist eine Kategorie. Möchtest du sie wirklich löschen?', 'Weiter'],
+          ['Achtung', 'Wenn du diese Kategorie löscht, löschst du automatisch alle dazuhängenden Fragen! Betroffen: ' + deps.join(', ') + '.', 'Verstanden'],
+          ['Bist du dir sicher?', deps.length + ' zugehörige Fragen werden zusammen mit „' + s.confirm.name + '“ gelöscht. Bisherige Antworten bleiben als veraltete Fragen erhalten.', 'Ja, löschen']
+        ][s.confirm.step - 1];
+        v.confirmTitle = texts[0]; v.confirmBody = texts[1]; v.confirmCta = texts[2];
+      } else {
+        v.confirmTitle = 'Frage löschen?';
+        v.confirmBody = '„' + s.confirm.name + '“ wird aus dem Fragebogen entfernt. Bisherige Antworten bleiben als veraltete Frage erhalten.';
+        v.confirmCta = 'Löschen';
+      }
+    }
+
+    // quiz question
+    if (v.isQuizQuestion && s.quiz && p) {
+      const name = s.quiz.order[s.quiz.index];
+      const q = p.questions.find(x => x.name === name) || {};
+      const val = s.quiz.values[name];
+      const shownIdx = s.quiz.order.slice(0, s.quiz.index + 1).filter(n => this.visible(n) || n === s.quiz.order[0]).length;
+      const shownTotal = s.quiz.order.filter(n => this.visible(n) || n === s.quiz.order[0]).length;
+      v.qName = q.name; v.qText = q.text; v.qCategory = q.category || '';
+      v.qIsBool = q.type === 'bool'; v.qIsRank = q.type === 'rank';
+      v.progressStyle = { height: '100%', width: Math.round((shownIdx / Math.max(1, shownTotal)) * 100) + '%', background: 'var(--color-accent)', borderRadius: 999, transition: 'width .25s ease' };
+      v.boolOpts = [['Ja', 1], ['Nein', 0]].map(o => ({
+        label: o[0],
+        onClick: () => this.setAnswer(name, o[1]),
+        style: { flex: 1, padding: '18px 10px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+          fontFamily: 'var(--font-body)', fontSize: 17, fontWeight: 700,
+          border: '2px solid ' + (val === o[1] ? 'var(--color-accent)' : 'var(--color-neutral-300)'),
+          background: val === o[1] ? 'var(--color-accent)' : 'var(--color-neutral-100)',
+          color: val === o[1] ? '#fff' : 'var(--color-neutral-700)' }
+      }));
+      v.rankValue = val === undefined ? 3 : val;
+      v.rankUnset = val === undefined;
+      v.rankDisplay = val === undefined ? '3,0' : String(Math.round(val * 10) / 10).replace('.', ',') + (Number.isInteger(val) ? ',0'.slice(0, 0) : '');
+      if (val !== undefined) v.rankDisplay = (Math.round(val * 10) / 10).toFixed(1).replace('.', ',');
+      v.rankValueStyle = { fontFamily: 'var(--font-heading)', fontSize: 44, lineHeight: 1, color: val === undefined ? 'var(--color-neutral-400)' : 'var(--color-accent-700)' };
+      v.setRank = e => this.setAnswer(name, parseFloat(e.target.value));
+      v.prevStyle = { flex: 1, padding: '14px 10px', borderRadius: 999, fontFamily: 'var(--font-body)', fontSize: 13.5,
+        border: '1px solid var(--color-neutral-300)', background: 'transparent',
+        color: s.quiz.index === 0 ? 'var(--color-neutral-400)' : 'var(--color-text)',
+        cursor: s.quiz.index === 0 ? 'default' : 'pointer' };
+      v.prevQuestion = () => { if (s.quiz.index > 0) this.step(-1); };
+      v.nextQuestion = () => this.step(1);
+    }
+
+    if (v.isQuizDone && s.quiz) {
+      const answered = Object.keys(s.quiz.values).length;
+      v.doneSummary = answered + ' Antworten erfasst';
+      v.doneCircleStyle = { width: s.doneAnim ? 92 : 40, height: s.doneAnim ? 92 : 40, borderRadius: 999,
+        background: 'var(--color-accent-2-400)', opacity: s.doneAnim ? 1 : 0.2,
+        transition: 'all .5s cubic-bezier(.2,.9,.3,1.2)' };
+    }
+
+    if (v.isStats && p) {
+      const targets = p.questions.filter(q => q.kind === this.KG && (s.statLegacy || !q.legacy));
+      const bars = this.computeBars();
+      v.targetOpts = targets.map(q => ({ value: q.name, label: q.name }));
+      v.statTarget = s.statTarget || this.LOCKED;
+      v.setStatTarget = e => this.setState({ statTarget: e.target.value, openText: null });
+      v.lagOpts = this.LAGS.map(l => ({ value: l[0], label: l[1] }));
+      v.statLag = s.statLag;
+      v.setStatLag = e => this.setState({ statLag: e.target.value });
+      v.toggleStatLegacy = () => this.setState({ statLegacy: !s.statLegacy });
+      v.statLegacyBoxStyle = this.boxStyle(s.statLegacy);
+      v.statLegacyCheck = s.statLegacy ? '✓' : '';
+      // Grundlage der Rechnung sind Tage, nicht Einträge — zweimal am selben
+      // Tag ausfüllen ergibt einen Tag.
+      const statDays = {}; p.rows.forEach(r => { statDays[r.date] = true; });
+      const nStatDays = Object.keys(statDays).length;
+      v.statBasis = nStatDays + (nStatDays === 1 ? ' Tag' : ' Tage');
+      const tq = p.questions.find(q => q.name === (s.statTarget || this.LOCKED));
+      v.statTargetText = tq ? tq.text : '';
+      v.lagExplain = (this.LAGS.find(l => l[0] === s.statLag) || this.LAGS[0])[3];
+      v.statsEmpty = bars.length === 0;
+      v.statsEmptyText = bars.length === 0 ? this.statsEmptyReason() : '';
+      v.bars = bars.map(b => {
+        const weak = b.n < 5;
+        const w = Math.min(50, Math.abs(b.r) * 50);
+        return {
+          name: b.name, text: b.text + (weak ? ' — nur ' + b.n + ' gemeinsame Tage' : ''),
+          value: (b.r >= 0 ? '+' : '−') + Math.abs(b.r).toFixed(2).replace('.', ','),
+          open: s.openText === b.name,
+          onToggle: () => this.setState({ openText: s.openText === b.name ? null : b.name }),
+          labelStyle: { width: 94, flex: 'none', fontSize: 10.5, lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', opacity: weak ? 0.4 : 1 },
+          valueStyle: { width: 38, flex: 'none', fontSize: 10.5, textAlign: 'right', fontVariantNumeric: 'tabular-nums', opacity: weak ? 0.4 : 1, color: 'var(--color-neutral-800)' },
+          barStyle: { position: 'absolute', top: 2, bottom: 2, borderRadius: 2,
+            left: b.r >= 0 ? '50%' : (50 - w) + '%', width: w + '%',
+            background: this.barColor(b.r), opacity: weak ? 0.35 : 1,
+            border: '1px solid rgba(32,30,29,.18)', boxSizing: 'border-box' }
+        };
+      });
+    }
+
+    return v;
+  }
+}
+</script>
+</body>
+</html>
