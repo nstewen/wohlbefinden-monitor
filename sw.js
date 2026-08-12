@@ -1,7 +1,7 @@
 // Alles liegt im Cache; das Netz wird nur zum Aktualisieren befragt.
 // Die Antworten selbst berührt der Service Worker nie — die stehen im
 // verschlüsselten localStorage der Seite.
-const CACHE = 'wbm-v1';
+const CACHE = 'wbm-3d8a7091f6';
 const ASSETS = [
   "./",
   "index.html",

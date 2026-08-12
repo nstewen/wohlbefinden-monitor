@@ -448,7 +448,8 @@ class Component extends DCLogic {
     confirm: null, toast: '', reminder: true, reminderTime: '20:00', doneAnim: false,
     exportFor: null, exportPass: '', notifyBanner: null,
     lastBackup: null, backupOpen: false, backupPass: '', backupMode: 'out', importText: '',
-    extraTemplates: [], storagePersisted: null, backupReason: ''
+    extraTemplates: [], storagePersisted: null, backupReason: '',
+    keyProblem: false, storageBroken: false
   };
 
   // ---------- constants ----------
@@ -579,23 +580,54 @@ class Component extends DCLogic {
   // ---------- device key (non-extractable AES-256-GCM in IndexedDB) ----------
   get storeKey() { return 'wbm_' + (this.props.storageKey || 'default'); }
 
-  deviceKey() {
-    if (this._keyP) return this._keyP;
-    this._keyP = new Promise((res, rej) => {
+  keyDb() {
+    if (this._dbP) return this._dbP;
+    this._dbP = new Promise((res, rej) => {
       const req = indexedDB.open('wbm-keys-' + (this.props.storageKey || 'default'), 1);
       req.onupgradeneeded = () => { req.result.createObjectStore('keys'); };
       req.onerror = () => rej(req.error);
-      req.onsuccess = () => {
-        const st = req.result.transaction('keys', 'readwrite').objectStore('keys');
+      req.onblocked = () => rej(new Error('blocked'));
+      req.onsuccess = () => res(req.result);
+    });
+    return this._dbP;
+  }
+
+  // Eine IndexedDB-Transaktion endet, sobald die Ereignisschleife wieder frei
+  // wird. Ein `put` nach einem `await` käme also immer zu spät — Schlüssel
+  // holen und Schlüssel ablegen brauchen deshalb je eine eigene Transaktion,
+  // und das Ablegen prüft in derselben Transaktion noch einmal, ob inzwischen
+  // ein anderer Tab einen Schlüssel hinterlegt hat.
+  deviceKey() {
+    if (this._keyP) return this._keyP;
+    this._keyP = (async () => {
+      const db = await this.keyDb();
+      const existing = await new Promise((res, rej) => {
+        const g = db.transaction('keys', 'readonly').objectStore('keys').get('main');
+        g.onerror = () => rej(g.error);
+        g.onsuccess = () => res(g.result || null);
+      });
+      if (existing) { this._keyStored = true; return existing; }
+
+      const fresh = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+
+      const stored = await new Promise((res, rej) => {
+        const tx = db.transaction('keys', 'readwrite');
+        const st = tx.objectStore('keys');
         const g = st.get('main');
         g.onerror = () => rej(g.error);
         g.onsuccess = () => {
-          if (g.result) return res(g.result);
-          crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
-            .then(k => { try { st.put(k, 'main'); } catch (e) {} res(k); }, rej);
+          if (g.result) return res(g.result);   // anderer Tab war schneller
+          const p = st.put(fresh, 'main');
+          p.onerror = () => rej(p.error);
+          tx.oncomplete = () => res(fresh);
+          tx.onabort = () => rej(tx.error || new Error('abort'));
         };
-      };
-    });
+      });
+      this._keyStored = true;
+      return stored;
+    })();
+    this._keyP.catch(() => {});
     return this._keyP;
   }
 
@@ -610,7 +642,11 @@ class Component extends DCLogic {
       let bin = ''; buf.forEach(b => { bin += String.fromCharCode(b); });
       localStorage.setItem(this.storeKey, 'ENC1:' + btoa(bin));
     } catch (e) {
+      // Lieber lesbar abgelegt als mit einem Schlüssel verschlüsselt, den der
+      // nächste Start nicht mehr hat. Die Zeile im Bildschirm „Profile
+      // verwalten“ sagt, dass es so weit gekommen ist.
       localStorage.setItem(this.storeKey, text);
+      if (!this.state.keyProblem) this.setState({ keyProblem: true });
     }
   }
 
@@ -665,10 +701,32 @@ class Component extends DCLogic {
     return 'download';
   }
 
+  // Eine unlesbare Ablage wird beiseitegelegt statt überschrieben. Sie ist mit
+  // einem verlorenen Schlüssel verschlüsselt und damit praktisch wertlos —
+  // aber sie wegzuwerfen, bevor jemand hingesehen hat, wäre eine Anmaßung.
+  quarantineStore() {
+    try {
+      const raw = localStorage.getItem(this.storeKey);
+      if (raw && raw.slice(0, 5) === 'ENC1:') {
+        localStorage.setItem(this.storeKey + '_unlesbar', raw);
+        localStorage.removeItem(this.storeKey);
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
   async componentDidMount() {
     this.checkStorage();
-    let saved = null;
-    try { const raw = await this.readStore(); saved = raw ? JSON.parse(raw) : null; } catch (e) { saved = null; }
+    let saved = null, broken = false;
+    try {
+      const raw = await this.readStore();
+      saved = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      saved = null;
+      broken = this.quarantineStore();
+    }
+    if (broken) this.setState({ storageBroken: true });
     if (saved && saved.profiles && saved.profiles.length) {
       this.setState({ ready: true, profiles: saved.profiles, currentId: saved.currentId, screen: 'menu',
         reminder: saved.reminder !== false, reminderTime: saved.reminderTime || '20:00',
@@ -1244,13 +1302,18 @@ class Component extends DCLogic {
       backupWarn: this.backupDue() ? this.backupWarnText() : '',
       backupNow: () => this.openBackupOut(''),
       backupReason: s.backupReason,
-      storageLine: s.storagePersisted === true
-        ? 'Speicher als dauerhaft markiert.'
-        : (s.storagePersisted === false
-            ? 'Speicher nicht als dauerhaft markiert — das System darf ihn bei Platzmangel räumen.'
-            : 'Dauerhafter Speicher wird von diesem Browser nicht gemeldet.'),
+      storageLine: s.keyProblem
+        ? 'Der Schlüssel ließ sich nicht ablegen — die Daten liegen unverschlüsselt im Browser. Lege eine Sicherung an.'
+        : (s.storageBroken
+            ? 'Eine frühere Ablage war nicht mehr lesbar und wurde beiseitegelegt. Neue Einträge werden wieder gespeichert.'
+            : (s.storagePersisted === true
+                ? 'Speicher als dauerhaft markiert.'
+                : (s.storagePersisted === false
+                    ? 'Speicher nicht als dauerhaft markiert — das System darf ihn bei Platzmangel räumen.'
+                    : 'Dauerhafter Speicher wird von diesem Browser nicht gemeldet.'))),
       storageDotStyle: { width: 8, height: 8, flex: 'none', borderRadius: 999,
-        background: s.storagePersisted === true ? 'var(--color-accent-2-500)' : 'var(--color-accent-500)' },
+        background: (s.storagePersisted === true && !s.keyProblem && !s.storageBroken)
+          ? 'var(--color-accent-2-500)' : 'var(--color-accent-500)' },
       exportTemplate: this.exportTemplate,
       readTemplateFile: this.readTemplateFile,
       openBackup: () => this.openBackupOut(''),
