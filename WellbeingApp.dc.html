@@ -95,7 +95,7 @@
             </div>
           </sc-if>
         </div>
-        <button onClick="{{ resetApp }}" style="align-self:flex-start;padding:8px 14px;border:1px solid var(--color-neutral-300);border-radius:999px;background:transparent;color:var(--color-neutral-700);font-family:var(--font-body);font-size:12px;cursor:pointer">Demo zurücksetzen</button>
+        <div style="font-size:11px;color:var(--color-neutral-500);font-variant-numeric:tabular-nums">{{ buildLine }}</div>
       </div>
     </sc-if>
 
@@ -1236,17 +1236,14 @@ class Component extends DCLogic {
     this.setState({ reminderTime: t }, () => { this.persist(); this.scheduleReminder(); });
   };
 
-  resetApp = () => {
-    try { localStorage.removeItem(this.storeKey); } catch (e) {}
-    if (this.props.seed) {
-      const p = this.demoProfile();
-      this.setState({ profiles: [p], currentId: p.id, screen: 'menu', quiz: null, quizPhase: 'start' }, this.persist);
-    } else {
-      this.setState({ profiles: [], currentId: null, screen: 'onboarding', quiz: null, quizPhase: 'start' });
-    }
-  };
-
   // ---------- render ----------
+  // Der Abdruck der ausgelieferten Dateien, beim Bauen in die Seite gelegt.
+  // Fehlt er, läuft die App aus einer Quelle, die nicht durch das Bauskript
+  // gegangen ist — etwa direkt aus dem Entwurfswerkzeug.
+  buildId() {
+    return (typeof window !== 'undefined' && window.__WBM_BUILD) || 'unbekannt';
+  }
+
   segStyle(active) {
     return { flex: 1, padding: '10px 6px', border: 'none', borderRadius: 999,
       background: active ? 'var(--color-accent)' : 'transparent',
@@ -1297,7 +1294,6 @@ class Component extends DCLogic {
       templateOpts: this.templateDefs().map(t => ({ id: t.id, label: t.label })),
       profileError: s.profileError,
       createProfile: this.createProfile,
-      resetApp: this.resetApp,
       reminder: s.reminder,
       reminderSub: s.reminder ? 'Täglich um ' + s.reminderTime + ' Uhr' : 'Aus',
       reminderTime: s.reminderTime,
@@ -1331,9 +1327,10 @@ class Component extends DCLogic {
       storageDotStyle: { width: 8, height: 8, flex: 'none', borderRadius: 999,
         background: (s.storagePersisted === true && !s.keyProblem && !s.storageBroken)
           ? 'var(--color-accent-2-500)' : 'var(--color-accent-500)' },
+      buildLine: 'Fassung ' + this.buildId(),
       // Beantwortet zwei Fragen auf einen Blick: Läuft die neue Fassung? Und
       // hat der Schlüssel den letzten Neustart überlebt?
-      diagLine: 'Fassung ' + ((typeof window !== 'undefined' && window.__WBM_BUILD) || 'unbekannt') +
+      diagLine: 'Fassung ' + this.buildId() +
         ' · Schlüssel beim Start: ' +
         (s.keyPresent === true ? 'vorhanden' : (s.keyPresent === false ? 'fehlte' : 'nicht prüfbar')),
       exportTemplate: this.exportTemplate,
